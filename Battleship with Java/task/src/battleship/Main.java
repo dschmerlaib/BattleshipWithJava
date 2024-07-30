@@ -180,10 +180,13 @@ class GameField {
         } else if (coordinates.first.column == coordinates.second.column) {
             // gleiche spalte
 
+            char lowerBound = coordinates.first.row <= coordinates.second.row ? coordinates.first.row : coordinates.second.row;
+            char upperBound = coordinates.first.row <= coordinates.second.row ? coordinates.second.row : coordinates.first.row;
+
             for (int i = 1; i < this.Value.length; i++) { // 1.Zeile nummerierung
                 //Hier Fehler
                 char counter = this.Value[i][0].charAt(0);
-                if (counter > coordinates.first.column && counter <= coordinates.second.row) { //<= >=
+                if (counter >= lowerBound && counter <= upperBound) { //<= >=
                     this.Value[i][coordinates.first.column] = "O";
 
                 }
