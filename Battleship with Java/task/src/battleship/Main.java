@@ -11,36 +11,43 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the coordinates of the ship:");
-        String coordinates = scanner.nextLine();
-        int length = GetLength(coordinates.split(" "));
-        String parts = GetPartsAsString(coordinates.split(" "));
-        System.out.println("Length: " + length);
-        System.out.println("Parts: " + parts);
+        String input = scanner.nextLine();
 
+        Coordinates coordinates = new Coordinates(input);
 
+        if (coordinates.haveErrors) {
+            System.out.println("Error!");
+        } else {
+
+            int length = GetLength(coordinates);
+            String parts = GetPartsAsString(coordinates);
+            System.out.println("Length: " + length);
+            System.out.println("Parts: " + parts);
+
+        }
     }
 
-    private static String GetPartsAsString(String[] coordinates) {
-        char[] x = coordinates[0].toCharArray();
-        char[] y = coordinates[1].toCharArray();
+
+    private static String GetPartsAsString(Coordinates coordinates) {
+
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        if (x[0] == y[0]) {
+        if (coordinates.first.row == coordinates.second.row) {
 
-            int x0 = Character.getNumericValue(x[1]);
-            int y0 = Character.getNumericValue(y[1]);
+            int x0 = coordinates.first.column;// Character.getNumericValue(x[1]);
+            int y0 = coordinates.second.column; //Character.getNumericValue(y[1]);
 
             if (x0 < y0) {
                 for (int i = x0; i <= y0; i++) {
-                    stringBuilder.append(x[0]);
+                    stringBuilder.append(coordinates.first.row);
                     stringBuilder.append(i);
                     stringBuilder.append(" ");
                 }
             } else {
 
                 for (int i = x0; i >= y0; i--) {
-                    stringBuilder.append(x[0]);
+                    stringBuilder.append(coordinates.first.row);
                     stringBuilder.append(i);
                     stringBuilder.append(" ");
                 }
@@ -51,34 +58,33 @@ public class Main {
                 stringBuilder.append(i);
                 stringBuilder.append(" ");
             }*/
-        } else if (x[0] > y[0]) {
-            for (char i = y[0]; i <= x[0]; i++) {
+        } else if (coordinates.first.row > coordinates.second.row) {
+            for (char i = coordinates.second.row; i <= coordinates.first.row; i++) {
                 stringBuilder.append(i);
-                stringBuilder.append(x[1]);
+                stringBuilder.append(coordinates.first.column);
                 stringBuilder.append(" ");
             }
         } else {
-            for (char i = x[0]; i <= y[0]; i++) {
+            for (char i = coordinates.first.row; i <= coordinates.second.row; i++) {
                 stringBuilder.append(i);
-                stringBuilder.append(x[1]);
+                stringBuilder.append(coordinates.first.column);
                 stringBuilder.append(" ");
             }
         }
-// Todo G8 G10 Test 
+
         return stringBuilder.toString();
     }
 
-    private static int GetLength(String[] coordinates) {
 
-        char[] x = coordinates[0].toCharArray();
-        char[] y = coordinates[1].toCharArray();
+    private static int GetLength(Coordinates coordinates) {
 
-        if (x[0] == y[0]) {
-            return Math.abs(x[1] - y[1]) + 1;
-        } else if (x[0] > y[0]) {
-            return Math.abs(x[0] - y[0]) + 1;
+
+        if (coordinates.first.row == coordinates.second.row) {
+            return Math.abs(coordinates.first.column - coordinates.second.column) + 1;
+        } else if (coordinates.first.row > coordinates.second.row) {
+            return Math.abs(coordinates.first.row - coordinates.second.row) + 1;
         } else {
-            return Math.abs(y[0] - x[0]) + 1;
+            return Math.abs(coordinates.second.row - coordinates.first.row) + 1;
         }
 
 
@@ -112,10 +118,42 @@ public class Main {
             for (int j = 1; j < 11; j++) {
                 gameField[i][j] = "~";
             }
-
-
         }
         return gameField;
     }
 
 }
+
+class Coordinate {
+    public char row;
+    public int column;
+
+    Coordinate(String coord) {
+        String[] parts = coord.split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
+        row = parts[0].charAt(0);
+        column = Integer.valueOf(parts[1]);
+    }
+}
+
+class Coordinates {
+    final char lowerRowBound = 'A';
+    final char upperRowBound = 'J';
+
+    final int lowerColumnBound = 1;
+    final int upperColumnBound = 10;
+
+    public Coordinate first;
+    public Coordinate second;
+    boolean haveErrors = false;
+
+    Coordinates(String coordinateString) {
+        String[] coords = coordinateString.split(" ");
+        first = new Coordinate(coords[0]);
+        second = new Coordinate(coords[1]);
+
+        haveErrors = first.row != second.row && first.column != second.column || first.column > upperColumnBound || second.column > upperColumnBound || first.column < lowerColumnBound || second.column < lowerColumnBound || first.row < lowerRowBound || second.row < lowerRowBound || first.row > upperRowBound || second.row > upperRowBound;
+
+
+    }
+}
+
