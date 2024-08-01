@@ -21,6 +21,7 @@ public class Main {
 
                 String input = scanner.nextLine();
                 Coordinates coordinates = ship.setPosition(input);
+                coordinates = gameField.CheckRestriction(coordinates);
                 if (ship.position.haveErrors) {
                     System.out.println("Error!");
 
@@ -36,55 +37,13 @@ public class Main {
     }
 
 
-    private static String GetPartsAsString(Coordinates coordinates) {
-
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (coordinates.first.row == coordinates.second.row) {
-
-            int x0 = coordinates.first.column;
-            int y0 = coordinates.second.column;
-
-            if (x0 < y0) {
-                for (int i = x0; i <= y0; i++) {
-                    stringBuilder.append(coordinates.first.row);
-                    stringBuilder.append(i);
-                    stringBuilder.append(" ");
-                }
-            } else {
-
-                for (int i = x0; i >= y0; i--) {
-                    stringBuilder.append(coordinates.first.row);
-                    stringBuilder.append(i);
-                    stringBuilder.append(" ");
-                }
-            }
-
-        } else if (coordinates.first.row > coordinates.second.row) {
-            for (char i = coordinates.second.row; i <= coordinates.first.row; i++) {
-                stringBuilder.append(i);
-                stringBuilder.append(coordinates.first.column);
-                stringBuilder.append(" ");
-            }
-        } else {
-            for (char i = coordinates.first.row; i <= coordinates.second.row; i++) {
-                stringBuilder.append(i);
-                stringBuilder.append(coordinates.first.column);
-                stringBuilder.append(" ");
-            }
-        }
-
-        return stringBuilder.toString();
-    }
-
-
 }
 
 
 class GameField {
     public String[][] Value; // [row][col]
     Dictionary<String, Integer> RowIndex = new Hashtable<>();
+    HashSet<String> RestrictedArea = new HashSet<>();
 
     public GameField() {
 
@@ -139,37 +98,114 @@ class GameField {
     public void AddShipPosition(Coordinates coordinates) {
 
         final String placedSign = "O";
-        // same row
 
         if (coordinates.first.row == coordinates.second.row) {
-            int index = 0;
-            for (int i = 0; i < this.Value.length; i++) {
+            // same row
 
-                index = i;
-                if (this.Value[i][0].equals(String.valueOf(coordinates.first.row))) {
-                    break;
-                }
-            }
-            int start = Math.min(coordinates.first.column, coordinates.second.column);
-            int end = Math.max(coordinates.first.column, coordinates.second.column);
+
+            int index = RowIndex.get(String.valueOf(coordinates.first.row));
+
+            int start =coordinates.lowerColumnBound; //Math.min(coordinates.first.column, coordinates.second.column);
+            int end =coordinates.upperColumnBound;// Math.max(coordinates.first.column, coordinates.second.column);
+
             for (int i = start; i <= end; i++) {
                 this.Value[index][i] = placedSign;
+                AddToRestricted(coordinates.first.row, i);
             }
 
         } else if (coordinates.first.column == coordinates.second.column) {
             // same column
 
-            char lowerBound = coordinates.first.row <= coordinates.second.row ? coordinates.first.row : coordinates.second.row;
-            char upperBound = coordinates.first.row <= coordinates.second.row ? coordinates.second.row : coordinates.first.row;
-
             for (int i = 1; i < this.Value.length; i++) {
                 char counter = this.Value[i][0].charAt(0);
-                if (counter >= lowerBound && counter <= upperBound) { //<= >=
+                if (counter >= coordinates.lowerRowBound && counter <= coordinates.upperRowBound) { //<= >=
                     this.Value[i][coordinates.first.column] = placedSign;
 
                 }
             }
         }
+    }
+
+    Coordinates CheckRestriction(Coordinates coordinates) {
+
+        HashSet<String> stringsToCheck = new HashSet<String>();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (coordinates.first.row == coordinates.second.row) //same row
+        {
+
+            for (int i = coordinates.lowerColumnBound; i <= coordinates.upperColumnBound; i++) {
+                // stringsToCheck.add(String.valueOf(coordinates.first.row + i)); //maybe char +int = other char
+                stringBuilder.append(coordinates.first.row);
+                stringBuilder.append(i);
+                stringsToCheck.add(stringBuilder.toString());
+                stringBuilder.setLength(0);
+            }
+
+        } else //same column
+        {
+            for (char i = coordinates.lowerRowBound; i <= coordinates.upperRowBound; i++) {
+                // stringsToCheck.add(String.valueOf(coordinates.first.row + i)); //maybe char +int = other char
+                stringBuilder.append(i);
+                stringBuilder.append(coordinates.first.column);
+                stringsToCheck.add(stringBuilder.toString());
+                stringBuilder.setLength(0);
+            }
+        }
+
+        for (String stringCoordinate : stringsToCheck) {
+            if (RestrictedArea.contains(stringCoordinate)) {
+                coordinates.haveErrors = true;
+                break;
+            }
+        }
+        return coordinates;
+    }
+
+    private void AddToRestricted(char row, int column) {
+        RestrictedArea.add(String.valueOf(row) + String.valueOf(column));
+    }
+
+    private String GetPartsAsString(Coordinates coordinates) {
+
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (coordinates.first.row == coordinates.second.row) {
+
+            int x0 = coordinates.first.column;
+            int y0 = coordinates.second.column;
+
+            if (x0 < y0) {
+                for (int i = x0; i <= y0; i++) {
+                    stringBuilder.append(coordinates.first.row);
+                    stringBuilder.append(i);
+                    stringBuilder.append(" ");
+                }
+            } else {
+
+                for (int i = x0; i >= y0; i--) {
+                    stringBuilder.append(coordinates.first.row);
+                    stringBuilder.append(i);
+                    stringBuilder.append(" ");
+                }
+            }
+
+        } else if (coordinates.first.row > coordinates.second.row) {
+            for (char i = coordinates.second.row; i <= coordinates.first.row; i++) {
+                stringBuilder.append(i);
+                stringBuilder.append(coordinates.first.column);
+                stringBuilder.append(" ");
+            }
+        } else {
+            for (char i = coordinates.first.row; i <= coordinates.second.row; i++) {
+                stringBuilder.append(i);
+                stringBuilder.append(coordinates.first.column);
+                stringBuilder.append(" ");
+            }
+        }
+
+        return stringBuilder.toString();
     }
 }
 
@@ -185,37 +221,59 @@ class Coordinate {
 }
 
 class Coordinates {
-    final char lowerRowBound = 'A';
-    final char upperRowBound = 'J';
 
-    final int lowerColumnBound = 1;
-    final int upperColumnBound = 10;
 
     public Coordinate first;
     public Coordinate second;
     boolean haveErrors = false;
 
+    public char lowerRowBound;
+    public char upperRowBound;
+    public String lowerRowBoundString;
+    public String upperRowBoundString;
+
+
+    public int lowerColumnBound;
+    public int upperColumnBound;
+
     Coordinates(String coordinateString) {
         String[] coords = coordinateString.split(" ");
         first = new Coordinate(coords[0]);
         second = new Coordinate(coords[1]);
-
+        DefineBounds();
         haveErrors = checkForErrors();
 
     }
 
     private boolean checkForErrors() {
+        char lowerBound = 'A';
+        char upperBound = 'J';
+        int lowerColumnBound = 1;
+        int upperColumnBound = 10;
+
         return first.row != second.row
                 && first.column != second.column
                 || first.column > upperColumnBound
                 || second.column > upperColumnBound
                 || first.column < lowerColumnBound
                 || second.column < lowerColumnBound
-                || first.row < lowerRowBound
-                || second.row < lowerRowBound
-                || first.row > upperRowBound
-                || second.row > upperRowBound;
+                || first.row < lowerBound
+                || second.row < lowerBound
+                || first.row > upperBound
+                || second.row > upperBound;
 
+    }
+
+    public void DefineBounds() {
+        lowerRowBound = first.row <= second.row ? first.row : second.row;
+        upperRowBound = first.row <= second.row ? second.row : first.row;
+
+        lowerRowBoundString = String.valueOf(lowerRowBound);
+        upperRowBoundString = String.valueOf(upperRowBound);
+
+
+        lowerColumnBound = Math.min(first.column, second.column);
+        upperColumnBound = Math.max(first.column, second.column);
     }
 }
 
@@ -224,11 +282,11 @@ class Ships {
     public ArrayList<Ship> Fleet = new ArrayList<Ship>();
 
     Ships() {
-        Fleet.add(new Ship(0, "Aircraft Carrier", 5));
-        Fleet.add(new Ship(1, "Battleship", 4));
-        Fleet.add(new Ship(2, "Submarine", 3));
+        // Fleet.add(new Ship(0, "Aircraft Carrier", 5));
+        //  Fleet.add(new Ship(1, "Battleship", 4));
+        //  Fleet.add(new Ship(2, "Submarine", 3));
         Fleet.add(new Ship(3, "Cruiser", 3));
-        Fleet.add(new Ship(4, "Destroyer", 2));
+       // Fleet.add(new Ship(4, "Destroyer", 2));
     }
 
 }
