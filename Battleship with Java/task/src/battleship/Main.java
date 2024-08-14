@@ -101,10 +101,10 @@ class GameField {
     }
 
     public boolean coordinateFitIsInField(Coordinate coordinate) {
-        int rowIndex = RowIndex.get(String.valueOf(coordinate.row));
-        int columnIndex = coordinate.column;
 
-        return rowIndex >= 1 && rowIndex <= 11 && columnIndex >= 1 && columnIndex <= 10;
+
+        List<String> rowKeys = Collections.list(RowIndex.keys());
+        return rowKeys.contains(String.valueOf(coordinate.row)) && coordinate.column >= 1 && coordinate.column <= 10;
 
     }
 
@@ -118,6 +118,7 @@ class GameField {
             this.Value[rowIndex][columnIndex] = "X";
             System.out.println("You hit a ship!");
         } else {
+            this.Value[rowIndex][columnIndex] = "M";
             System.out.println("You missed!");
         }
     }
