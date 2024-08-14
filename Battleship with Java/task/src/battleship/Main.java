@@ -5,13 +5,55 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) {
-
-        GameField gameField = new GameField();
-        Ships ships = new Ships();
-        gameField.PrintGameField();
-
         Scanner scanner = new Scanner(System.in);
+        GameField gameFieldPlayer1 = new GameField();
+        Ships shipsPlayer1 = new Ships();
 
+        GameField gameFieldPlayer2 = new GameField();
+        Ships shipsPlayer2 = new Ships();
+
+        PlaceShips(gameFieldPlayer1, shipsPlayer1, scanner);
+        PlaceShips(gameFieldPlayer2, shipsPlayer2, scanner);
+
+        System.out.println("The game starts");
+        gameFieldPlayer1.PrintGameFieldWithFog();
+
+        while (true) {
+            System.out.println("Take a shot");
+            Coordinate shot = new Coordinate(scanner.nextLine());
+
+            if (gameFieldPlayer1.coordinateFitIsInField(shot)) {
+                boolean isHit = gameFieldPlayer1.TakeShot(shot);
+
+                gameFieldPlayer1.PrintGameFieldWithFog();
+                if (isHit) {
+                    boolean shipIsAlive = false;
+                    for (Ship ship : shipsPlayer2.Fleet) {
+                        shipIsAlive = ship.hit(shot);
+                        if (!shipIsAlive) {
+                            System.out.println("You sank a ship! Specify a new target:");
+                            shipsPlayer2.Fleet.remove(ship);
+                            break;
+                        }
+                    }
+
+                } else {
+                    System.out.println("You missed!");
+                }
+                gameFieldPlayer1.PrintGameField();
+                if (shipsPlayer2.Fleet.isEmpty()) {
+
+
+                    break;
+                }
+            }
+
+        }
+        System.out.println("You sank the last ship. You won. Congratulations!");
+    }
+
+    private static void PlaceShips(GameField gameField, Ships ships, Scanner scanner) {
+        gameField.PrintGameField();
         for (int i = 0; i < ships.Fleet.size(); i++) {
             Ship ship = ships.Fleet.get(i);
 
@@ -31,47 +73,8 @@ public class Main {
                     repeat = false;
                 }
             }
-
         }
-        System.out.println("The game starts");
-        gameField.PrintGameFieldWithFog();
-        boolean repeat = true;
-
-        while (repeat) {
-            System.out.println("Take a shot");
-            Coordinate shot = new Coordinate(scanner.nextLine());
-
-            if (gameField.coordinateFitIsInField(shot)) {
-                boolean isHit = gameField.TakeShot(shot);
-// todo handle same hit
-                gameField.PrintGameFieldWithFog();
-                if (isHit) {
-                    boolean shipIsAlive = false;
-                    for (Ship ship : ships.Fleet) {
-                        shipIsAlive = ship.hit(shot);
-                        if (!shipIsAlive) {
-                            System.out.println("You sank a ship! Specify a new target:");
-                            ships.Fleet.remove(ship);
-                            break;
-                        }
-                    }
-
-                } else {
-                    System.out.println("You missed!");
-                }
-                gameField.PrintGameField();
-                if (ships.Fleet.isEmpty()) {
-
-                    repeat = false;
-                    break;
-                }
-            }
-
-        }
-        System.out.println("You sank the last ship. You won. Congratulations!");
     }
-
-
 }
 
 
@@ -193,17 +196,17 @@ class GameField {
 
         if (coordinates.first.row == coordinates.second.row) {
             // same row
-            AddShipInRow(coordinates, placedSign);
+            AddShipInRow(coordinates);
 
         } else if (coordinates.first.column == coordinates.second.column) {
             // same column
 
-            AddShipInColumn(coordinates, placedSign);
+            AddShipInColumn(coordinates);
         }
 
     }
 
-    private void AddShipInColumn(Coordinates coordinates, String placedSign) {
+    private void AddShipInColumn(Coordinates coordinates) {
         int start = RowIndex.get(String.valueOf(coordinates.lowerRowBound));
         int end = RowIndex.get(String.valueOf(coordinates.upperRowBound));
 
@@ -212,7 +215,7 @@ class GameField {
         for (int i = start; i <= end; i++) {
 
             if (keys.hasMoreElements()) {
-                this.Value[i][coordinates.first.column] = placedSign;
+                this.Value[i][coordinates.first.column] = "O";
                 String letter = this.ReverseRowIndex.get(String.valueOf(i));
                 AddToRestrictedArea(letter, coordinates.first.column);
 
@@ -238,14 +241,14 @@ class GameField {
         }
     }
 
-    private void AddShipInRow(Coordinates coordinates, String placedSign) {
+    private void AddShipInRow(Coordinates coordinates) {
         int index = RowIndex.get(String.valueOf(coordinates.first.row));
 
         int start = coordinates.lowerColumnBound;
         int end = coordinates.upperColumnBound;
 
         for (int i = start; i <= end; i++) {
-            this.Value[index][i] = placedSign;
+            this.Value[index][i] = "O";
             AddToRestrictedArea(coordinates.first.row, i);
             this.shipPositions.add(new Coordinate(coordinates.upperRowBound, i));
 
