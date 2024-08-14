@@ -103,15 +103,7 @@ class GameField {
             // same row
 
 
-            int index = RowIndex.get(String.valueOf(coordinates.first.row));
-
-            int start =coordinates.lowerColumnBound; //Math.min(coordinates.first.column, coordinates.second.column);
-            int end =coordinates.upperColumnBound;// Math.max(coordinates.first.column, coordinates.second.column);
-
-            for (int i = start; i <= end; i++) {
-                this.Value[index][i] = placedSign;
-                AddToRestricted(coordinates.first.row, i);
-            }
+            AddShipInRow(coordinates, placedSign);
 
         } else if (coordinates.first.column == coordinates.second.column) {
             // same column
@@ -120,9 +112,41 @@ class GameField {
                 char counter = this.Value[i][0].charAt(0);
                 if (counter >= coordinates.lowerRowBound && counter <= coordinates.upperRowBound) { //<= >=
                     this.Value[i][coordinates.first.column] = placedSign;
-
+                    AddToRestrictedArea(counter,coordinates.first.column);
+                   // todo refactor and implement here,
+                    //  Upper and Lower,
+                    //  then column left and right
                 }
             }
+        }
+    }
+
+    private void AddShipInRow(Coordinates coordinates, String placedSign) {
+        int index = RowIndex.get(String.valueOf(coordinates.first.row));
+
+        int start = coordinates.lowerColumnBound; //Math.min(coordinates.first.column, coordinates.second.column);
+        int end = coordinates.upperColumnBound;// Math.max(coordinates.first.column, coordinates.second.column);
+
+        for (int i = start; i <= end; i++) {
+            this.Value[index][i] = placedSign;
+            AddToRestrictedArea(coordinates.first.row, i);
+
+            if (i == start && i > 1) {
+                AddToRestrictedArea(coordinates.first.row, i - 1); //left
+            } else if (i == end && i < 11) {
+                AddToRestrictedArea(coordinates.first.row, i + 1); // right
+            }
+            if (index > 1) //oben
+            {
+                char helper = coordinates.first.row;
+                AddToRestrictedArea(--helper, i);
+            }
+            if (index < 11) //unten
+            {
+                char helper = coordinates.first.row ;
+                AddToRestrictedArea(++helper, i);
+            }
+
         }
     }
 
@@ -162,7 +186,7 @@ class GameField {
         return coordinates;
     }
 
-    private void AddToRestricted(char row, int column) {
+    private void AddToRestrictedArea(char row, int column) {
         RestrictedArea.add(String.valueOf(row) + String.valueOf(column));
     }
 
@@ -286,7 +310,7 @@ class Ships {
         //  Fleet.add(new Ship(1, "Battleship", 4));
         //  Fleet.add(new Ship(2, "Submarine", 3));
         Fleet.add(new Ship(3, "Cruiser", 3));
-       // Fleet.add(new Ship(4, "Destroyer", 2));
+        Fleet.add(new Ship(4, "Destroyer", 2));
     }
 
 }
