@@ -33,7 +33,21 @@ public class Main {
             }
 
         }
+        System.out.println("The game starts");
+        gameField.PrintGameField();
+        boolean repeat = true;
 
+        while (repeat) {
+            System.out.println("Take a shot");
+            Coordinate shot = new Coordinate(scanner.nextLine());
+
+            if (gameField.coordinateFitIsInField(shot)) {
+                gameField.TakeShot(shot);
+                gameField.PrintGameField();
+                repeat = false;
+            }
+
+        }
     }
 
 
@@ -86,6 +100,28 @@ class GameField {
         return gameField;
     }
 
+    public boolean coordinateFitIsInField(Coordinate coordinate) {
+        int rowIndex = RowIndex.get(String.valueOf(coordinate.row));
+        int columnIndex = coordinate.column;
+
+        return rowIndex >= 1 && rowIndex <= 11 && columnIndex >= 1 && columnIndex <= 10;
+
+    }
+
+    public void TakeShot(Coordinate coordinate) {
+
+
+        int rowIndex = RowIndex.get(String.valueOf(coordinate.row));
+        int columnIndex = coordinate.column;
+
+        if (this.Value[rowIndex][columnIndex].equals("O")) {
+            this.Value[rowIndex][columnIndex] = "X";
+            System.out.println("You hit a ship!");
+        } else {
+            System.out.println("You missed!");
+        }
+    }
+
     private void CreateReverseRowIndex() {
 
         Enumeration<String> keys = this.RowIndex.keys();
@@ -120,7 +156,7 @@ class GameField {
 
             AddShipInColumn(coordinates, placedSign);
         }
-        
+
     }
 
     private void AddShipInColumn(Coordinates coordinates, String placedSign) {
