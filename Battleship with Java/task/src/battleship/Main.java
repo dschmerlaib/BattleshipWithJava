@@ -120,11 +120,7 @@ class GameField {
 
             AddShipInColumn(coordinates, placedSign);
         }
-        /*System.out.println("Printed restricted");
-        for (String txt : RestrictedArea) {
-            System.out.println(txt);
-        }*/
-
+        
     }
 
     private void AddShipInColumn(Coordinates coordinates, String placedSign) {
