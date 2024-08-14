@@ -34,7 +34,7 @@ public class Main {
 
         }
         System.out.println("The game starts");
-        gameField.PrintGameField();
+        gameField.PrintGameFieldWithFog();
         boolean repeat = true;
 
         while (repeat) {
@@ -42,7 +42,14 @@ public class Main {
             Coordinate shot = new Coordinate(scanner.nextLine());
 
             if (gameField.coordinateFitIsInField(shot)) {
-                gameField.TakeShot(shot);
+                boolean isHit = gameField.TakeShot(shot);
+
+                gameField.PrintGameFieldWithFog();
+                if (isHit) {
+                    System.out.println("You hit a ship!");
+                } else {
+                    System.out.println("You missed!");
+                }
                 gameField.PrintGameField();
                 repeat = false;
             }
@@ -56,6 +63,7 @@ public class Main {
 
 class GameField {
     public String[][] Value; // [row][col]
+    public String[][] FieldWithFogOfWar; // [row][col]
     Dictionary<String, Integer> RowIndex = new Hashtable<>();
     Dictionary<String, String> ReverseRowIndex = new Hashtable<>();
     HashSet<String> RestrictedArea = new HashSet<>();
@@ -76,6 +84,7 @@ class GameField {
         CreateReverseRowIndex();
 
         Value = CreateField();
+        FieldWithFogOfWar = CreateField();
     }
 
     private String[][] CreateField() {
@@ -108,7 +117,7 @@ class GameField {
 
     }
 
-    public void TakeShot(Coordinate coordinate) {
+    public boolean TakeShot(Coordinate coordinate) {
 
 
         int rowIndex = RowIndex.get(String.valueOf(coordinate.row));
@@ -116,10 +125,14 @@ class GameField {
 
         if (this.Value[rowIndex][columnIndex].equals("O")) {
             this.Value[rowIndex][columnIndex] = "X";
-            System.out.println("You hit a ship!");
+            this.FieldWithFogOfWar[rowIndex][columnIndex] = "X";
+
+            return true;
         } else {
             this.Value[rowIndex][columnIndex] = "M";
-            System.out.println("You missed!");
+            this.FieldWithFogOfWar[rowIndex][columnIndex] = "M";
+
+            return false;
         }
     }
 
@@ -138,6 +151,18 @@ class GameField {
             for (int j = 0; j < 11; j++) {
 
                 System.out.print(Value[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("\n");
+    }
+
+    public void PrintGameFieldWithFog() {
+        for (int i = 0; i < 11; i++) {
+
+            for (int j = 0; j < 11; j++) {
+
+                System.out.print(FieldWithFogOfWar[i][j] + " ");
             }
             System.out.println();
         }
