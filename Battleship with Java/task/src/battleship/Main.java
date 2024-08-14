@@ -113,47 +113,59 @@ class GameField {
 
         if (coordinates.first.row == coordinates.second.row) {
             // same row
-
-            int index = RowIndex.get(String.valueOf(coordinates.first.row));
-
-            int start = coordinates.lowerColumnBound; //Math.min(coordinates.first.column, coordinates.second.column);
-            int end = coordinates.upperColumnBound;// Math.max(coordinates.first.column, coordinates.second.column);
-
-            for (int i = start; i <= end; i++) {
-                this.Value[index][i] = placedSign;
-                AddToRestricted(coordinates.first.row, i);
-            }
+            AddShipInRow(coordinates, placedSign);
 
         } else if (coordinates.first.column == coordinates.second.column) {
             // same column
 
-            int start = RowIndex.get(String.valueOf(coordinates.lowerRowBound));
-            int end = RowIndex.get(String.valueOf(coordinates.upperRowBound));
-
-            Enumeration<String> keys = RowIndex.keys();
-
-            for (int i = start; i <= end; i++) {
-
-                if (keys.hasMoreElements()) {
-                    this.Value[i][coordinates.first.column] = placedSign;
-                    String letter = this.ReverseRowIndex.get(String.valueOf(i));
-                    AddToRestricted(letter, coordinates.first.column);
-
-                }
-            }
+            AddShipInColumn(coordinates, placedSign);
         }
-        System.out.println("Printed restricted");
+        /*System.out.println("Printed restricted");
         for (String txt : RestrictedArea) {
             System.out.println(txt);
-        }
+        }*/
 
     }
 
-    /*private void AddShipInRow(Coordinates coordinates, String placedSign) {
+    private void AddShipInColumn(Coordinates coordinates, String placedSign) {
+        int start = RowIndex.get(String.valueOf(coordinates.lowerRowBound));
+        int end = RowIndex.get(String.valueOf(coordinates.upperRowBound));
+
+        Enumeration<String> keys = RowIndex.keys();
+
+        for (int i = start; i <= end; i++) {
+
+            if (keys.hasMoreElements()) {
+                this.Value[i][coordinates.first.column] = placedSign;
+                String letter = this.ReverseRowIndex.get(String.valueOf(i));
+                AddToRestrictedArea(letter, coordinates.first.column);
+
+
+                if (i == start && i > 1) { // oben
+                    char helper = coordinates.first.row;
+                    AddToRestrictedArea(--helper, coordinates.first.column);
+                } else if (i == end && i < 11) {// unten
+                    char helper = coordinates.second.row;
+
+                    AddToRestrictedArea(++helper, coordinates.first.column);
+                }
+                if (coordinates.first.column > 2) // linke spalte
+                {
+                    AddToRestrictedArea(letter, coordinates.first.column - 1);
+                }
+                if (coordinates.first.column < 10) // rechte spalte
+                {
+                    AddToRestrictedArea(letter, coordinates.first.column + 1);
+                }
+            }
+        }
+    }
+
+    private void AddShipInRow(Coordinates coordinates, String placedSign) {
         int index = RowIndex.get(String.valueOf(coordinates.first.row));
 
-        int start = coordinates.lowerColumnBound; //Math.min(coordinates.first.column, coordinates.second.column);
-        int end = coordinates.upperColumnBound;// Math.max(coordinates.first.column, coordinates.second.column);
+        int start = coordinates.lowerColumnBound;
+        int end = coordinates.upperColumnBound;
 
         for (int i = start; i <= end; i++) {
             this.Value[index][i] = placedSign;
@@ -171,12 +183,12 @@ class GameField {
             }
             if (index < 11) //unten
             {
-                char helper = coordinates.first.row ;
+                char helper = coordinates.first.row;
                 AddToRestrictedArea(++helper, i);
             }
-
         }
-    }*/
+    }
+
 
     Coordinates CheckRestriction(Coordinates coordinates) {
 
@@ -215,12 +227,12 @@ class GameField {
         return coordinates;
     }
 
-    private void AddToRestricted(String row, int column) {
+    private void AddToRestrictedArea(String row, int column) {
         RestrictedArea.add(row + String.valueOf(column));
     }
 
-    private void AddToRestricted(char row, int column) {
-        AddToRestricted(String.valueOf(row), column);
+    private void AddToRestrictedArea(char row, int column) {
+        AddToRestrictedArea(String.valueOf(row), column);
         //RestrictedArea.add(String.valueOf(row) + String.valueOf(column));
     }
 
@@ -340,10 +352,10 @@ class Ships {
     public ArrayList<Ship> Fleet = new ArrayList<Ship>();
 
     Ships() {
-        //Fleet.add(new Ship(0, "Aircraft Carrier", 5));
-        //Fleet.add(new Ship(1, "Battleship", 4));
-        //Fleet.add(new Ship(2, "Submarine", 3));
-        //Fleet.add(new Ship(3, "Cruiser", 3));
+        Fleet.add(new Ship(0, "Aircraft Carrier", 5));
+        Fleet.add(new Ship(1, "Battleship", 4));
+        Fleet.add(new Ship(2, "Submarine", 3));
+        Fleet.add(new Ship(3, "Cruiser", 3));
         Fleet.add(new Ship(4, "Destroyer", 2));
     }
 
