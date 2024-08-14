@@ -43,18 +43,32 @@ public class Main {
 
             if (gameField.coordinateFitIsInField(shot)) {
                 boolean isHit = gameField.TakeShot(shot);
-
+// todo handle same hit
                 gameField.PrintGameFieldWithFog();
                 if (isHit) {
-                    System.out.println("You hit a ship!");
+                    boolean shipIsAlive = false;
+                    for (Ship ship : ships.Fleet) {
+                        shipIsAlive = ship.hit(shot);
+                        if (!shipIsAlive) {
+                            System.out.println("You sank a ship! Specify a new target:");
+                            ships.Fleet.remove(ship);
+                            break;
+                        }
+                    }
+
                 } else {
                     System.out.println("You missed!");
                 }
                 gameField.PrintGameField();
-                repeat = false;
+                if (ships.Fleet.isEmpty()) {
+
+                    repeat = false;
+                    break;
+                }
             }
 
         }
+        System.out.println("You sank the last ship. You won. Congratulations!");
     }
 
 
@@ -67,6 +81,8 @@ class GameField {
     Dictionary<String, Integer> RowIndex = new Hashtable<>();
     Dictionary<String, String> ReverseRowIndex = new Hashtable<>();
     HashSet<String> RestrictedArea = new HashSet<>();
+
+    public List<Coordinate> shipPositions = new ArrayList<>();
 
     public GameField() {
 
@@ -123,9 +139,11 @@ class GameField {
         int rowIndex = RowIndex.get(String.valueOf(coordinate.row));
         int columnIndex = coordinate.column;
 
-        if (this.Value[rowIndex][columnIndex].equals("O")) {
+
+        if (this.shipPositions.contains(coordinate)) {
             this.Value[rowIndex][columnIndex] = "X";
             this.FieldWithFogOfWar[rowIndex][columnIndex] = "X";
+            //this.shipPositions.remove(coordinate);
 
             return true;
         } else {
@@ -198,6 +216,7 @@ class GameField {
                 String letter = this.ReverseRowIndex.get(String.valueOf(i));
                 AddToRestrictedArea(letter, coordinates.first.column);
 
+                this.shipPositions.add(new Coordinate(letter.charAt(0), coordinates.first.column));
 
                 if (i == start && i > 1) { // oben
                     char helper = coordinates.first.row;
@@ -228,6 +247,7 @@ class GameField {
         for (int i = start; i <= end; i++) {
             this.Value[index][i] = placedSign;
             AddToRestrictedArea(coordinates.first.row, i);
+            this.shipPositions.add(new Coordinate(coordinates.upperRowBound, i));
 
             if (i == start && i > 1) {
                 AddToRestrictedArea(coordinates.first.row, i - 1); //left
@@ -257,7 +277,6 @@ class GameField {
         {
 
             for (int i = coordinates.lowerColumnBound; i <= coordinates.upperColumnBound; i++) {
-                // stringsToCheck.add(String.valueOf(coordinates.first.row + i)); //maybe char +int = other char
                 stringBuilder.append(coordinates.first.row);
                 stringBuilder.append(i);
                 stringsToCheck.add(stringBuilder.toString());
@@ -267,7 +286,6 @@ class GameField {
         } else //same column
         {
             for (char i = coordinates.lowerRowBound; i <= coordinates.upperRowBound; i++) {
-                // stringsToCheck.add(String.valueOf(coordinates.first.row + i)); //maybe char +int = other char
                 stringBuilder.append(i);
                 stringBuilder.append(coordinates.first.column);
                 stringsToCheck.add(stringBuilder.toString());
@@ -294,47 +312,7 @@ class GameField {
         //RestrictedArea.add(String.valueOf(row) + String.valueOf(column));
     }
 
-    private String GetPartsAsString(Coordinates coordinates) {
 
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (coordinates.first.row == coordinates.second.row) {
-
-            int x0 = coordinates.first.column;
-            int y0 = coordinates.second.column;
-
-            if (x0 < y0) {
-                for (int i = x0; i <= y0; i++) {
-                    stringBuilder.append(coordinates.first.row);
-                    stringBuilder.append(i);
-                    stringBuilder.append(" ");
-                }
-            } else {
-
-                for (int i = x0; i >= y0; i--) {
-                    stringBuilder.append(coordinates.first.row);
-                    stringBuilder.append(i);
-                    stringBuilder.append(" ");
-                }
-            }
-
-        } else if (coordinates.first.row > coordinates.second.row) {
-            for (char i = coordinates.second.row; i <= coordinates.first.row; i++) {
-                stringBuilder.append(i);
-                stringBuilder.append(coordinates.first.column);
-                stringBuilder.append(" ");
-            }
-        } else {
-            for (char i = coordinates.first.row; i <= coordinates.second.row; i++) {
-                stringBuilder.append(i);
-                stringBuilder.append(coordinates.first.column);
-                stringBuilder.append(" ");
-            }
-        }
-
-        return stringBuilder.toString();
-    }
 }
 
 class Coordinate {
@@ -346,6 +324,24 @@ class Coordinate {
         row = parts[0].charAt(0);
         column = Integer.parseInt(parts[1]);
     }
+
+    Coordinate(char row, int column) {
+        this.row = row;
+        this.column = column;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Coordinate that = (Coordinate) o;
+        return row == that.row && column == that.column;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(row, column);
+    }
 }
 
 class Coordinates {
@@ -353,6 +349,9 @@ class Coordinates {
 
     public Coordinate first;
     public Coordinate second;
+
+    public List<Coordinate> allPositions = new ArrayList<>();
+
     boolean haveErrors = false;
 
     public char lowerRowBound;
@@ -370,8 +369,24 @@ class Coordinates {
         second = new Coordinate(coords[1]);
         DefineBounds();
         haveErrors = checkForErrors();
-
+        Do();
     }
+
+    private void Do() {
+        if (lowerRowBound == upperRowBound) {
+            //same row
+            for (int i = lowerColumnBound; i <= upperColumnBound; i++) {
+                allPositions.add(new Coordinate(lowerRowBound, i));
+            }
+        } else {
+            //same column
+            for (char i = lowerRowBound; i <= upperRowBound; i++) {
+                allPositions.add(new Coordinate(i, lowerColumnBound));
+            }
+
+        }
+    }
+
 
     private boolean checkForErrors() {
         char lowerBound = 'A';
@@ -417,6 +432,7 @@ class Ships {
         Fleet.add(new Ship(4, "Destroyer", 2));
     }
 
+
 }
 
 class Ship {
@@ -425,11 +441,21 @@ class Ship {
     public int orderNumber;
 
     public Coordinates position;
+    private boolean alive = true;
 
     public Ship(int orderNumber, String name, int length) {
         this.name = name;
         this.length = length;
         this.orderNumber = orderNumber;
+    }
+
+    public boolean hit(Coordinate coordinate) {
+        position.allPositions.remove(coordinate);
+
+        if (position.allPositions.isEmpty()) {
+            alive = false;
+        }
+        return alive;
     }
 
     public String getInfoText() {
