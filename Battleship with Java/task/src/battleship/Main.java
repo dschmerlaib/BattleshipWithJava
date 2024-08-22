@@ -6,50 +6,124 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Player 1, place your ships on the game field");
         GameField gameFieldPlayer1 = new GameField();
         Ships shipsPlayer1 = new Ships();
+        PlaceShips(gameFieldPlayer1, shipsPlayer1, scanner);
+
+        PressEnterToGoOn();
+
+        System.out.println("Player 2, place your ships on the game field");
 
         GameField gameFieldPlayer2 = new GameField();
         Ships shipsPlayer2 = new Ships();
-
-        PlaceShips(gameFieldPlayer1, shipsPlayer1, scanner);
         PlaceShips(gameFieldPlayer2, shipsPlayer2, scanner);
 
-        System.out.println("The game starts");
-        gameFieldPlayer1.PrintGameFieldWithFog();
+        //System.out.println("Press Enter and pass the move to another player");
+        //String temp = scanner.nextLine();
+        PressEnterToGoOn();
+        //System.out.println("The game starts");
+        //gameFieldPlayer1.PrintGameFieldWithFog();
 
+        boolean playerOneTurn = true;
+
+        // switch between players
         while (true) {
-            System.out.println("Take a shot");
-            Coordinate shot = new Coordinate(scanner.nextLine());
 
-            if (gameFieldPlayer1.coordinateFitIsInField(shot)) {
-                boolean isHit = gameFieldPlayer1.TakeShot(shot);
+
+
+            if (playerOneTurn) {
+
+
+                //print player 1 field
+                gameFieldPlayer2.PrintGameFieldWithFog();
+                System.out.println("-----------");
+                gameFieldPlayer1.PrintGameField();
+                System.out.println("Player 1, it's your turn:");
+
+                Coordinate shot = new Coordinate(scanner.nextLine());
+
+                if (gameFieldPlayer2.coordinateFitIsInField(shot)) {
+                    boolean isHit = gameFieldPlayer2.TakeShot(shot);
+
+                    //gameFieldPlayer2.PrintGameFieldWithFog();
+                    if (isHit) {
+                        System.out.println("You hit a ship!");
+                        boolean shipIsAlive = false;
+                        for (Ship ship : shipsPlayer2.Fleet) {
+                            shipIsAlive = ship.hit(shot);
+                            if (!shipIsAlive) {
+                                System.out.println("You sank a ship! Specify a new target:");
+                                shipsPlayer2.Fleet.remove(ship);
+                                break;
+                            }
+                        }
+
+                    } else {
+                        System.out.println("You missed!");
+                    }
+                    //gameFieldPlayer2.PrintGameField();
+                    if (shipsPlayer2.Fleet.isEmpty()) {
+
+
+                        break;
+                    }
+                }
+
+            } else {
+
 
                 gameFieldPlayer1.PrintGameFieldWithFog();
-                if (isHit) {
-                    boolean shipIsAlive = false;
-                    for (Ship ship : shipsPlayer2.Fleet) {
-                        shipIsAlive = ship.hit(shot);
-                        if (!shipIsAlive) {
-                            System.out.println("You sank a ship! Specify a new target:");
-                            shipsPlayer2.Fleet.remove(ship);
-                            break;
+                System.out.println("-----------");
+                gameFieldPlayer2.PrintGameField();
+                System.out.println("Player 2, it's your turn:");
+
+                Coordinate shot = new Coordinate(scanner.nextLine());
+
+                if (gameFieldPlayer1.coordinateFitIsInField(shot)) {
+                    boolean isHit = gameFieldPlayer1.TakeShot(shot);
+
+                    //gameFieldPlayer1.PrintGameFieldWithFog();
+                    if (isHit) {
+                        System.out.println("You hit a ship!");
+                        boolean shipIsAlive = false;
+                        for (Ship ship : shipsPlayer1.Fleet) {
+                            shipIsAlive = ship.hit(shot);
+                            if (!shipIsAlive) {
+                                System.out.println("You sank a ship! Specify a new target:");
+                                shipsPlayer1.Fleet.remove(ship);
+                                break;
+                            }
                         }
+
+                    } else {
+                        System.out.println("You missed!");
                     }
-
-                } else {
-                    System.out.println("You missed!");
-                }
-                gameFieldPlayer1.PrintGameField();
-                if (shipsPlayer2.Fleet.isEmpty()) {
+                    //gameFieldPlayer1.PrintGameField();
+                    if (shipsPlayer1.Fleet.isEmpty()) {
 
 
-                    break;
+                        break;
+                    }
                 }
             }
 
+            playerOneTurn = !playerOneTurn;
+            //System.out.println("Press Enter and pass the move to another player");
+            //scanner.nextLine();
+            PressEnterToGoOn();
         }
         System.out.println("You sank the last ship. You won. Congratulations!");
+    }
+
+    private static void PressEnterToGoOn() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Press Enter and pass the move to another player");
+
+            String in = scanner.nextLine();
+            System.out.println("...");
+            scanner.close();
+
     }
 
     private static void PlaceShips(GameField gameField, Ships ships, Scanner scanner) {
